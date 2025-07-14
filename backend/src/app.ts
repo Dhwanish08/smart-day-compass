@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://your-frontend.vercel.app' // TODO: Replace with your actual Vercel URL after deploying frontend
+  'https://smart-day-compass.vercel.app' // Vercel frontend URL
 ];
 
 // Middleware
