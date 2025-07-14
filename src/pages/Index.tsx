@@ -124,9 +124,21 @@ const Index = () => {
       }))
       .sort((a, b) => a.start - b.start);
 
-    // 2. Define working hours (e.g., 09:00 to 18:00)
-    const WORK_START = 9 * 60;
-    const WORK_END = 18 * 60;
+    // 1a. Add virtual tasks for sleep (23:00–06:00) and morning routine (06:00–07:00) unless user has tasks in those times
+    // Sleep: 23:00–24:00 and 00:00–06:00 (split for day boundary)
+    const SLEEP_START_1 = 23 * 60, SLEEP_END_1 = 24 * 60;
+    const SLEEP_START_2 = 0, SLEEP_END_2 = 6 * 60;
+    const MORNING_START = 6 * 60, MORNING_END = 7 * 60;
+    // Check if user has tasks in these times
+    const hasTaskIn = (start: number, end: number) => scheduledTasks.some(t => t.start < end && t.end > start);
+    if (!hasTaskIn(SLEEP_START_1, SLEEP_END_1)) scheduledTasks.push({ start: SLEEP_START_1, end: SLEEP_END_1 });
+    if (!hasTaskIn(SLEEP_START_2, SLEEP_END_2)) scheduledTasks.push({ start: SLEEP_START_2, end: SLEEP_END_2 });
+    if (!hasTaskIn(MORNING_START, MORNING_END)) scheduledTasks.push({ start: MORNING_START, end: MORNING_END });
+    scheduledTasks.sort((a, b) => a.start - b.start);
+
+    // 2. Define working hours (e.g., 07:00 to 23:00)
+    const WORK_START = 7 * 60;
+    const WORK_END = 23 * 60;
     let availableSlots = [];
     let lastEnd = WORK_START;
     // Find gaps between scheduled tasks
