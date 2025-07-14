@@ -51,11 +51,13 @@ export default function Profile() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     async function fetchProfile() {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:5000/api/auth/profile", {
+        const res = await fetch(`${API_URL}/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.status === 401) {
@@ -84,7 +86,7 @@ export default function Profile() {
       }
     }
     fetchProfile();
-  }, [token, toast, logout]);
+  }, [token, toast, logout, API_URL]);
 
   useEffect(() => {
     return () => {
@@ -148,7 +150,7 @@ export default function Profile() {
       const croppedBlob = await getCroppedImg(imageDataUrl, croppedAreaPixels);
       const formData = new FormData();
       formData.append("image", croppedBlob, selectedImage.name);
-      const res = await fetch("http://localhost:5000/api/auth/profile/image", {
+      const res = await fetch(`${API_URL}/auth/profile/image`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -173,7 +175,7 @@ export default function Profile() {
     e.preventDefault();
     setUpdating(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
+      const res = await fetch(`${API_URL}/auth/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -198,7 +200,7 @@ export default function Profile() {
     if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
     setDeleting(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
+      const res = await fetch(`${API_URL}/auth/profile`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

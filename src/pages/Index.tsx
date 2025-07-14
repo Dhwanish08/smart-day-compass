@@ -20,11 +20,12 @@ const Index = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
   const { logout } = useAuth();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     async function fetchProfile() {
       if (!token) return;
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
+      const res = await fetch(`${API_URL}/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
