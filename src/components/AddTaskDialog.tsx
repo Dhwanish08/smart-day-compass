@@ -139,7 +139,7 @@ export const AddTaskDialog = ({ onAddTask, existingTasks }: AddTaskDialogProps) 
           <DialogTitle className="text-xl">Add New Task</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto">
           <div className="space-y-2">
             <Label htmlFor="title" className="text-base font-medium">
               What do you need to do?
