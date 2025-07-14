@@ -26,6 +26,7 @@ const Index = () => {
     async function fetchProfile() {
       if (!token) return;
       const res = await fetch(`${API_URL}/auth/profile`, {
+        
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -105,12 +106,22 @@ const Index = () => {
     }
 
     // Simple AI optimization - suggest times for flexible tasks
+    const hours = [9, 10, 11, 14, 15, 16, 17];
     const suggestions = flexibleTasks.map(task => {
-      const hours = [9, 10, 11, 14, 15, 16, 17];
       const randomHour = hours[Math.floor(Math.random() * hours.length)];
       const time = `${randomHour.toString().padStart(2, '0')}:00`;
-      return { task, suggestedTime: time };
+      return { ...task, suggestedTime: time };
     });
+
+    // Update tasks state with suggested times for flexible tasks
+    const updatedTasks = tasks.map(task => {
+      if (task.type === 'flexible' && !task.completed) {
+        const suggestion = suggestions.find(s => s.id === task.id);
+        return suggestion ? { ...task, suggestedTime: suggestion.suggestedTime } : task;
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
 
     toast({
       title: "Schedule optimized!",

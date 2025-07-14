@@ -14,6 +14,7 @@ export interface Task {
   flexibleDuration?: 'day' | 'week';
   priority?: 'low' | 'medium' | 'high';
   category?: 'medicine' | 'appointment' | 'work' | 'family' | 'personal' | 'school';
+  suggestedTime?: string; // Added for flexible tasks
 }
 
 interface TaskCardProps {

@@ -123,7 +123,17 @@ export const DailySchedule = ({ tasks, onOptimizeSchedule }: DailyScheduleProps)
   });
 
   const scheduledTasks = schedule.filter(item => item.type === 'scheduled');
-  const flexibleTasks = schedule.filter(item => item.type === 'flexible');
+  // Only show flexible tasks whose suggestedTime is in the future (for today)
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const flexibleTasks = schedule.filter(item => {
+    if (item.type !== 'flexible') return false;
+    if (!item.task.suggestedTime) return true; // Show if no suggestion
+    // Parse suggestedTime (HH:mm)
+    const [h, m] = item.task.suggestedTime.split(':').map(Number);
+    const taskMinutes = h * 60 + m;
+    return taskMinutes > nowMinutes;
+  });
 
   return (
     <div className="space-y-6">
@@ -231,6 +241,11 @@ export const DailySchedule = ({ tasks, onOptimizeSchedule }: DailyScheduleProps)
                         {item.task.category && (
                           <span className="text-xs text-muted-foreground">
                             {item.task.category}
+                          </span>
+                        )}
+                        {item.task.suggestedTime && (
+                          <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            Suggested: {item.task.suggestedTime}
                           </span>
                         )}
                       </div>
