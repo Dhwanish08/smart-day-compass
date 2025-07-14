@@ -94,9 +94,20 @@ const Index = () => {
     });
   };
 
+  // Helper: Convert HH:mm to minutes
+  const timeToMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+  // Helper: Convert minutes to HH:mm
+  const minutesToTime = (min: number) => {
+    const h = Math.floor(min / 60).toString().padStart(2, '0');
+    const m = (min % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+  };
+
   const optimizeSchedule = () => {
     const flexibleTasks = tasks.filter(task => task.type === 'flexible' && !task.completed);
-    
     if (flexibleTasks.length === 0) {
       toast({
         title: "No flexible tasks to optimize",
@@ -105,19 +116,51 @@ const Index = () => {
       return;
     }
 
-    // Simple AI optimization - suggest times for flexible tasks
-    const hours = [9, 10, 11, 14, 15, 16, 17];
-    const suggestions = flexibleTasks.map(task => {
-      const randomHour = hours[Math.floor(Math.random() * hours.length)];
-      const time = `${randomHour.toString().padStart(2, '0')}:00`;
-      return { ...task, suggestedTime: time };
-    });
+    // 1. Gather all scheduled tasks for today, sorted by start time
+    const scheduledTasks = tasks.filter(task => task.startTime && !task.completed)
+      .map(task => ({
+        start: timeToMinutes(task.startTime!),
+        end: task.endTime ? timeToMinutes(task.endTime) : timeToMinutes(task.startTime!) + 60
+      }))
+      .sort((a, b) => a.start - b.start);
 
-    // Update tasks state with suggested times for flexible tasks
+    // 2. Define working hours (e.g., 09:00 to 18:00)
+    const WORK_START = 9 * 60;
+    const WORK_END = 18 * 60;
+    let availableSlots = [];
+    let lastEnd = WORK_START;
+    // Find gaps between scheduled tasks
+    for (const t of scheduledTasks) {
+      if (t.start - lastEnd >= 60) {
+        availableSlots.push({ start: lastEnd, end: t.start });
+      }
+      lastEnd = Math.max(lastEnd, t.end);
+    }
+    // Add slot after last scheduled task
+    if (WORK_END - lastEnd >= 60) {
+      availableSlots.push({ start: lastEnd, end: WORK_END });
+    }
+
+    // 3. Assign flexible tasks to earliest available 1-hour slots
+    const suggestions: { id: string, suggestedTime: string }[] = [];
+    let slotIdx = 0;
+    for (const task of flexibleTasks) {
+      while (slotIdx < availableSlots.length && availableSlots[slotIdx].end - availableSlots[slotIdx].start < 60) {
+        slotIdx++;
+      }
+      if (slotIdx >= availableSlots.length) break;
+      const slot = availableSlots[slotIdx];
+      const suggestedTime = minutesToTime(slot.start);
+      suggestions.push({ id: task.id, suggestedTime });
+      // Move slot start forward by 60 min for next flexible task
+      availableSlots[slotIdx].start += 60;
+    }
+
+    // 4. Update tasks state with suggested times for flexible tasks
     const updatedTasks = tasks.map(task => {
       if (task.type === 'flexible' && !task.completed) {
         const suggestion = suggestions.find(s => s.id === task.id);
-        return suggestion ? { ...task, suggestedTime: suggestion.suggestedTime } : task;
+        return suggestion ? { ...task, suggestedTime: suggestion.suggestedTime } : { ...task, suggestedTime: undefined };
       }
       return task;
     });
